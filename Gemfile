@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+source "https://ruby.taobao.org"
 
 group :development do
   gem 'rake', '~> 10.0'
@@ -16,3 +16,4 @@ group :development do
 end
 
 gem 'sinatra', '~> 1.4.2'
+gem 'octopress-solarized'

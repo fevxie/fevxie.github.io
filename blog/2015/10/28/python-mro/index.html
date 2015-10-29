@@ -1,24 +1,77 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[王庆的博客]]></title>
-  <link href="http://fevxie.github.io/atom.xml" rel="self"/>
-  <link href="http://fevxie.github.io/"/>
-  <updated>2015-10-29T11:35:19+08:00</updated>
-  <id>http://fevxie.github.io/</id>
-  <author>
-    <name><![CDATA[Qing Wang]]></name>
-    
-  </author>
-  <generator uri="http://octopress.org/">Octopress</generator>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Python 方法解析顺序(MRO) - 王庆的博客</title>
+  <meta name="author" content="Qing Wang">
 
   
-  <entry>
-    <title type="html"><![CDATA[Python 方法解析顺序(MRO)]]></title>
-    <link href="http://fevxie.github.io/blog/2015/10/28/python-mro/"/>
-    <updated>2015-10-28T09:23:03+08:00</updated>
-    <id>http://fevxie.github.io/blog/2015/10/28/python-mro</id>
-    <content type="html"><![CDATA[<h2>概念</h2>
+  <meta name="description" content="概念 Python MRO 定义了多继承类实例在调用类方法的时候的正确搜索路径。什么意思呢， 如果一个类有多个父类， 那么我们用这个类的实例调用类的方法的时候，Python是如果在当前类和父类中找到这个方法的呢？MRO 定义了一系列规则及算法来完成这个事情。 MRO的历史 MRO有两个版本， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://fevxie.github.io/blog/2015/10/28/python-mro/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="王庆的博客" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
+</head>
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">王庆的博客</a></h1>
+  
+    <h2>爱编程, 爱历史</h2>
+  
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="fevxie.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">博客</a></li>
+  <li><a href="/blog/archives">历史博客</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  <header>
+    
+      <h1 class="entry-title">Python 方法解析顺序(MRO)</h1>
+    
+    
+      <p class="meta">
+        <time class='entry-date' datetime='2015-10-28T09:23:03+08:00'><span class='date'>2015-10-28</span> <span class='time'>09:23:03</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>概念</h2>
 
 <p>Python MRO 定义了<strong>多继承</strong>类实例在调用类方法的时候的正确搜索路径。什么意思呢， 如果一个类有多个父类， 那么我们用这个类的实例调用类的方法的时候，Python是如果在当前类和父类中找到这个方法的呢？MRO 定义了一系列规则及算法来完成这个事情。</p>
 
@@ -420,27 +473,143 @@ C的线性化结果为C加上所有父类线性化及所有父类列表进行mer
 <li><a href="https://en.wikipedia.org/wiki/C3_linearization">C3 linearization</a></li>
 </ol>
 
-]]></content>
-  </entry>
+</div>
+  <footer>
+    <p class="meta">
+      <span class="byline author vcard">Posted by <span class="fn">Qing Wang</span></span>
+      <time class='entry-date' datetime='2015-10-28T09:23:03+08:00'><span class='date'>2015-10-28</span> <span class='time'>09:23:03</span></time>
+      <span class="categories">
   
-  <entry>
-    <title type="html"><![CDATA[测试]]></title>
-    <link href="http://fevxie.github.io/blog/2015/10/26/ce-shi/"/>
-    <updated>2015-10-26T00:27:11+08:00</updated>
-    <id>http://fevxie.github.io/blog/2015/10/26/ce-shi</id>
-    <content type="html"><![CDATA[<h2>test blog</h2>
-
-<p>this is a test blog</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'>    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span class='line'>        <span class="k">return</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-
-]]></content>
-  </entry>
+    <a class='category' href='/blog/categories/python/'>python</a>
   
-</feed>
+</span>
+      <DIV style="font-size:12px;BORDER-BOTTOM: #bbbbbb 1px solid; BORDER-LEFT: #bbbbbb 1px solid; BACKGROUND: #f6f6f6; HEIGHT: 120px; BORDER-TOP: #bbbbbb 1px solid; BORDER-RIGHT: #bbbbbb 1px solid" class="oec2003right"> 
+    <DIV style="MARGIN-TOP: 10px; FLOAT: left; MARGIN-LEFT: 5px; MARGIN-RIGHT: 10px"> 
+        <IMG alt="" src="../../images/pic.jpeg" width=90 height=100>
+    </DIV> 
+    <DIV style="LINE-HEIGHT: 200%; MARGIN-TOP: 10px; COLOR: #000000"> 
+        作者： <A href="http://fevxie.github.io/">王庆</A> <BR> 
+        出处： <A href="http://fevxie.github.io/">http://fevxie.github.io/</A> 
+        <BR>本文基于<a target="_blank" title="Creative Commons Attribution 2.5 China Mainland License" href="http://creativecommons.org/licenses/by/2.5/cn/"> 
+        署名 2.5 中国大陆</a>许可协议发布，欢迎转载，演绎或用于商业目的，但是必须保留本文的署名 
+        <a href="http://fevxie.github.io/">王庆</a>（包含链接).
+    </DIV>
+</DIV>
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://fevxie.github.io/blog/2015/10/28/python-mro/" data-via="" data-counturl="http://fevxie.github.io/blog/2015/10/28/python-mro/" >Tweet</a>
+  
+  
+  
+</div>
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/10/26/ce-shi/" title="Previous Post: 测试">&laquo; 测试</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/10/28/python-mro/">Python 方法解析顺序(MRO)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/10/26/ce-shi/">测试</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Category Cloud</h1>
+    <span id="tag-cloud"><a href='/blog/categories/python/' style='font-size: 160.0%'>python(1)</a> <a href='/blog/categories/test/' style='font-size: 160.0%'>test(1)</a> </span>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/fevxie">@fevxie</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'fevxie',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Qing Wang -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p></footer>
+  <script type="text/javascript">
+      var disqus_shortname = 'fevxie';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://fevxie.github.io/blog/2015/10/28/python-mro/';
+        var disqus_url = 'http://fevxie.github.io/blog/2015/10/28/python-mro/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+</body>
+</html>

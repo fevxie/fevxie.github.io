@@ -9,7 +9,9 @@
   <meta name="author" content="Qing Wang">
 
   
-  <meta name="description" content="概念 Python MRO 定义了多继承类实例在调用类方法的时候的正确搜索路径。什么意思呢， 如果一个类有多个父类， 那么我们用这个类的实例调用类的方法的时候，Python是如何在当前类和父类中找到这个方法的呢？MRO 定义了一系列规则及算法来完成这个事情。 MRO的历史 MRO有两个版本， &hellip;">
+  <meta name="description" content="参考资料: What is the difference between type.getattribute and object.getattribute?
+Add getdescriptor method to metaclass
+Python - Using getattribute &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -58,6 +60,243 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/30/python-attribute/">Python_attribute</a></h1>
+    
+    
+      <p class="meta">
+        <time class='entry-date' datetime='2015-10-30T14:54:32+08:00'><span class='date'>2015-10-30</span> <span class='time'>14:54:32</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>参考资料:</p>
+
+<p><a href="http://stackoverflow.com/questions/24150894/what-is-the-difference-between-type-getattribute-and-object-getattribute">What is the difference between type.<strong>getattribute</strong> and object.<strong>getattribute</strong>?</a>
+<a href="http://legacy.python.org/dev/peps/pep-0447/#id39">Add <strong>getdescriptor</strong> method to metaclass</a>
+<a href="http://stackoverflow.com/questions/371753/python-using-getattribute-method">Python - Using <strong>getattribute</strong> method</a>
+<a href="http://www.cafepy.com/article/python_attributes_and_methods/python_attributes_and_methods.html#attribute-search-summary">Attribute Search Summary</a></p>
+</div>
+    </article>
+  
+  
+    <article>
+      <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/29/python-descriptor/">Python 描述符</a></h1>
+    
+    
+      <p class="meta">
+        <time class='entry-date' datetime='2015-10-29T13:34:02+08:00'><span class='date'>2015-10-29</span> <span class='time'>13:34:02</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>基本概念</h2>
+
+<ol>
+<li><p>Descriptor Protocol(描述符协议)——描述符协议指的是签名如下的几个方法:</p>
+
+<ul>
+<li><p>descr.<strong>get</strong>(self, obj, type=None) &ndash;> value</p></li>
+<li><p>descr.<strong>set</strong>(self, obj, value) &ndash;> None</p></li>
+<li><p>descr.<strong>delete</strong>(self, obj) &ndash;> None</p></li>
+</ul>
+</li>
+<li><p>Descriptor(描述符)——如果一个类定义了上述三个方法中的任何一个, 那么这个类的实例对象被称之为<strong>描述符</strong>, 描述符有以下几个特性:</p>
+
+<ul>
+<li><p>描述符可以通过描述符协议中定义的方法重写Python中默认的属性 查找顺序（参考【前言】部分), 解释一下：什么叫重写默认的属性查找顺序, 如果类实例调用的属性是一个描述符对象, Python 就不会按照上面所述的方式去查找此属性的值，而是调用描述符定义的函数来获取这个值, 后续会详细讲解这个过程在Python中是如何实现的</p></li>
+<li><p>通常情况下, 描述符是作为一个对象的属性来进行访问的, 或者说描述符对象是绑定在对象的属性上的</p></li>
+</ul>
+</li>
+<li><p>Data Descriptor(数据描述符) 和 non-data Descriptor（非数据描述符）
+如果一个对象同时定义了<strong>get</strong>() 和 <strong>set</strong>() 方法,那么这个对象被成为数据描述符, 如果一个对象只定义了<strong>get</strong>() 方法， 那么这个对象被成为非数据描述符， 讲到这里，你可能会觉的非数据描述符就是只读属性，这个理解是错误的， 我们后续会讲数据描述符和非数据描述符的区别。</p></li>
+</ol>
+
+
+<p>如果我们要定义一个只读的数据描述符, 可以这么做:
+* 同时定义<strong>get</strong>()和<strong>set</strong>()方法， 在<strong>set</strong>() 的实现中 raise 一个attributeError 异常</p>
+
+<h2>对象属性查找顺序</h2>
+
+<p>我们以一个小例子开始这一部分,假如我们有如下定义:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">_name</span> <span class="o">=</span> <span class="s">&quot;fevxie&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">_number</span> <span class="o">=</span> <span class="mi">1024</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker</span><span class="p">):</span>
+</span><span class='line'>        <span class="bp">self</span><span class="o">.</span><span class="n">worker</span> <span class="o">=</span> <span class="n">worker</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">()</span>
+</span><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="p">(</span><span class="s">&quot;I&#39;m a worker&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">print</span> <span class="n">A</span><span class="o">.</span><span class="n">__dict__</span>
+</span><span class='line'><span class="k">print</span> <span class="n">B</span><span class="o">.</span><span class="n">__dict__</span>
+</span><span class='line'><span class="k">print</span> <span class="n">b</span><span class="o">.</span><span class="n">__dict__</span>
+</span><span class='line'><span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">__dict__</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>输出结果:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="s">&#39;__dict__&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">attribute</span> <span class="s">&#39;__dict__&#39;</span> <span class="n">of</span> <span class="s">&#39;A&#39;</span> <span class="n">objects</span><span class="o">&gt;</span><span class="p">,</span> <span class="s">&#39;__module__&#39;</span><span class="p">:</span> <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="s">&#39;__weakref__&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">attribute</span> <span class="s">&#39;__weakref__&#39;</span> <span class="n">of</span> <span class="s">&#39;A&#39;</span> <span class="n">objects</span><span class="o">&gt;</span><span class="p">,</span> <span class="s">&#39;__doc__&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;_name&#39;</span><span class="p">:</span> <span class="s">&#39;fevxie&#39;</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="s">&#39;__module__&#39;</span><span class="p">:</span> <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="s">&#39;__doc__&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;__init__&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">__init__</span> <span class="n">at</span> <span class="mh">0x1023d5cf8</span><span class="o">&gt;</span><span class="p">,</span> <span class="s">&#39;_number&#39;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span><span class="p">{</span><span class="s">&#39;worker&#39;</span><span class="p">:</span> <span class="s">&quot;I&#39;m a worker&quot;</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&gt;&gt;&gt;</span><span class="p">{}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从输出结果我们得出以下结果:
+* 类实例对象的<strong>dict</strong>字典里只会存储当前实例对象的属性
+* 类对象的<strong>dict</strong>字典里存储当前类的属性</p>
+
+<p>在Python中当我们调用一个对象(类对象或者实例对象)的属性的时候(obj.x),Python 按照如下的顺序来查找这个属性:</p>
+
+<p>属性存储位置:</p>
+
+<ul>
+<li>[1]类实例的<strong>dict</strong>字典(存储类实例的属性)</li>
+<li>[2]类对象的<strong>dict</strong>字典(存储类对象的属性)</li>
+<li>[3]类父类(按照MRO顺序)的<strong>dict</strong>字典(存储父类对象的属性)</li>
+</ul>
+
+
+<p>属性查找的顺序:</p>
+
+<p>如果是Python提供的内置属性, 系统直接返回, 如果不是内置属性</p>
+
+<ul>
+<li>类实例对象
+
+<ul>
+<li>在位置[2]中查找属性并且判断属性是不是数据描述符对象</li>
+<li>在位置[3]中查找属性并且判断属性是不是数据描述符对象</li>
+<li>在位置[1]中查找属性</li>
+<li>在位置[2]中查找属性</li>
+<li>在位置[3]中查找属性</li>
+<li>在位置[2]中查找属性并且判断属性是不是非数据描述符对象</li>
+<li>在位置[3]中查找属性并且判断属性是不是非数据描述符对象</li>
+<li>抛出AttributeError异常</li>
+</ul>
+</li>
+<li>类对象
+
+<ul>
+<li>在位置[2]查找属性并且判断是不是数据描述符对象</li>
+<li>在位置[3]中查找属性并且判断是不是数据描述符对象</li>
+<li>在位置[2]中查找属性</li>
+<li>在位置[3]中查找属性</li>
+<li>在位置[2]中查找属性并且判断是不是非数据描述符对象</li>
+<li>在位置[3]中查找属性并且判断是不是非数据描述符对象</li>
+<li>抛出AttributeError异常</li>
+</ul>
+</li>
+</ul>
+
+
+<p>从上面的步骤我们可以看到Python中属性查找的优先顺序为:</p>
+
+<ul>
+<li>数据描述符的优先级高于实例变量</li>
+<li>实例变量的优先级高于非数据描述符</li>
+<li>如果类重写了<strong>getattr</strong>()方法, 此方法的优先级最低</li>
+</ul>
+
+
+<h2>调用过程</h2>
+
+<ul>
+<li>描述符可以直接通过描述符对象来调用，例如: d.<strong>get</strong>(obj)</li>
+<li>但是通常情况下, 最常用的调用方法是通过调用对象的属性来自动调用,例如：obj.d在obj对象的属性字典中按照上边所说的顺序查找d,如果Python发现d对象定义了<strong>get</strong>()方法则会调用此方法。</li>
+<li>需要注意的一点是描述符属性只能定义在类对象上, 而不能定义在类实例对象上.</li>
+</ul>
+
+
+<p>调用过程取决于obj 是一个类实例对象还是一个类对象, 这两种情况下Python的处理逻辑是不一样的</p>
+
+<ul>
+<li><p>如果obj是一个类实例对象当调用b.x的时候Python会调用object.<strong>getattribute()</strong>方法, 此方法会将b.x 转换成 type(b).<strong>dict</strong>[&lsquo;x&rsquo;].<strong>get</strong>(b, type(b)).</p></li>
+<li><p>如果obj是一个类对象, Python会调用type.<strong>getattribute()</strong>方法, 此方法会将B.x转换成B.<strong>dict</strong>[&lsquo;x&rsquo;].<strong>get</strong>(None, B).</p></li>
+<li><p><strong>getattribute</strong> 方法</p></li>
+</ul>
+
+
+<p>Python中当读取对象的属性的时候, Python会自动调用此方法， 这个方法的定义为:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="nb">object</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中self 参数为调用属性的对象, name 为属性的名称</p>
+
+<p>我们做一个小的例子:</p>
+
+<p>的实现类似于如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="k">def</span> <span class="nf">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+</span><span class='line'>    <span class="n">v</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s">&#39;__get__&#39;</span><span class="p">):</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">v</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>参考资料:</p>
+
+<ul>
+<li><a href="http://www.cafepy.com/article/python_attributes_and_methods/ch01s04.html">Two Kinds of Descriptors</a></li>
+<li><a href="https://docs.python.org/2/howto/descriptor.html">Descriptor HowTo Guide</a></li>
+<li><a href="https://docs.python.org/2/reference/datamodel.html#object.__getattribute__">Data model</a></li>
+<li><a href="http://www.cafepy.com/article/python_attributes_and_methods/python_attributes_and_methods.html#attribute-search-summary">Attribute Search Summary</a></li>
+<li><a href="http://stackoverflow.com/questions/12599972/descriptors-as-instance-attributes-in-python">Descriptors as instance attributes in python</a></li>
+</ul>
+
+</div>
+    </article>
   
   
     <article>
@@ -526,6 +765,14 @@ C的线性化结果为C加上所有父类线性化及所有父类列表进行mer
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/10/30/python-attribute/">Python_attribute</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/10/29/python-descriptor/">Python 描述符</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/10/28/python-mro/">Python 方法解析顺序(MRO)</a>
       </li>
     
@@ -537,7 +784,7 @@ C的线性化结果为C加上所有父类线性化及所有父类列表进行mer
 </section>
 <section>
   <h1>Category Cloud</h1>
-    <span id="tag-cloud"><a href='/blog/categories/python/' style='font-size: 160.0%'>python(1)</a> <a href='/blog/categories/test/' style='font-size: 160.0%'>test(1)</a> </span>
+    <span id="tag-cloud"><a href='/blog/categories/python/' style='font-size: 160.0%'>python(2)</a> <a href='/blog/categories/test/' style='font-size: 130.0%'>test(1)</a> </span>
 </section>
 
 <section>
